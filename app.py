@@ -1,5 +1,4 @@
 """Assistant Aroéven, navigation ludique 100 % par boutons, sans IA."""
-import base64
 import json
 import re
 import unicodedata
@@ -35,20 +34,12 @@ st.markdown(
 )
 
 BASE_DIR = Path(__file__).parent
-LOGO_PATH = BASE_DIR / "assets" / "logo_aroeven_hdf.png"
 BANNER_PATH = BASE_DIR / "assets" / "banniere_permanence_aroeven.png"
 
 
 @st.cache_data
 def charger_faq():
     return json.loads((BASE_DIR / "faq.json").read_text(encoding="utf-8"))
-
-
-@st.cache_data
-def charger_logo_base64():
-    if not LOGO_PATH.exists():
-        return None
-    return base64.b64encode(LOGO_PATH.read_bytes()).decode("ascii")
 
 
 faq = charger_faq()
@@ -212,45 +203,31 @@ def surprise():
             st.session_state.cas = idx
             return
 
-logo_b64 = charger_logo_base64()
-if logo_b64:
-    st.markdown(
-        (
-            '<div class="hero"><div class="hero-inner">'
-            '<div class="hero-logo-wrap">'
-            f'<img class="hero-logo" src="data:image/png;base64,{logo_b64}" alt="Logo Aroéven Hauts-de-France">'
-            '</div>'
-            '<div class="hero-copy"><h1>🌈 Mon copilote Aroéven</h1>'
-            '<p>Une question sur ton séjour ? Choisis un bouton et avançons ensemble 💬</p></div>'
-            '</div></div>'
-        ),
-        unsafe_allow_html=True,
-    )
-else:
-    st.markdown(
-        '<div class="hero"><h1>🌈 Mon copilote Aroéven</h1><p>Une question sur ton séjour ? Choisis un bouton et avançons ensemble 💬</p></div>',
-        unsafe_allow_html=True,
-    )
-
-
+# Bandeau d’accueil : la bannière définitive rassemble le logo et les consignes essentielles.
+# Affichée en premier et sur toute la largeur, sans répéter les anciens encarts.
 if BANNER_PATH.exists():
     st.image(str(BANNER_PATH), use_container_width=True)
 
-# Rappel visible sur toutes les pages : la permanence reste une ressource essentielle.
-st.markdown(
-    """
-<div class="permanence" role="note" aria-label="Importance de la permanence Aroéven">
-  <h3>📞 La permanence Aroéven : le bon réflexe</h3>
-  <p>Appelle la permanence lorsqu’une décision, une validation ou un arbitrage Aroéven est nécessaire,
-  ou face à une situation préoccupante qui ne peut attendre.</p>
-  <p>Hors horaires de bureau, l’astreinte est réservée aux urgences : si personne ne répond,
-  laisse obligatoirement un message décrivant la situation. Pour les questions courantes, utilise ce chatbot en priorité ou le groupe WhatsApp du séjour.</p>
-  <p class="telephone">📞 Siège : 03 20 75 10 85 — de 9 h à 17 h en semaine, hors jours fériés.</p>
-  <p>📱 Astreinte : hors horaires du siège. Tous les numéros sont dans votre téléphone professionnel ou dans le groupe WhatsApp.</p>
-</div>
-""",
-    unsafe_allow_html=True,
-)
+st.markdown("## 🌈 Mon copilote Aroéven")
+st.caption("Une question sur ton séjour ? Choisis une situation, puis le cas qui te correspond.")
+
+# Le texte complémentaire reste disponible sans encombrer l’écran d’accueil.
+with st.expander("📞 Précisions importantes sur la permanence"):
+    st.markdown(
+        """Appelle la permanence lorsqu’une décision, une validation ou un arbitrage Aroéven est nécessaire,
+        ou face à une situation préoccupante qui ne peut attendre.
+
+        **Hors horaires de bureau**, l’astreinte est réservée aux urgences. Si personne ne répond,
+        laisse obligatoirement un message décrivant la situation.
+
+        Pour les questions courantes, utilise **ce chatbot en priorité** ou le groupe WhatsApp du séjour.
+
+        **📞 Siège : 03 20 75 10 85** — de 9 h à 17 h en semaine, hors jours fériés.
+
+        **📱 Astreinte :** hors horaires du siège. Les numéros sont dans votre téléphone professionnel
+        ou dans le groupe WhatsApp.
+        """
+    )
 
 # Parcours en 3 étapes : situation -> cas précis -> réponse.
 if st.session_state.situation is None:
